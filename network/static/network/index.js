@@ -78,25 +78,25 @@ function load_posts(type, page) {
             card_body.innerHTML = '';
             
 
-            // const poster = document.createElement('h5');
-            // poster.className = 'card-title';
-            // poster.innerHTML = posts[i].poster;
+            const poster = document.createElement('h5');
+            poster.className = 'card-title';
+            poster.innerHTML = posts[i].poster;
 
-            // const body = document.createElement('p');
-            // body.className = 'card-text';
-            // body.innerHTML = posts[i].body;
+            const body = document.createElement('p');
+            body.className = 'card-text';
+            body.innerHTML = posts[i].body;
 
             const timestamp = document.createElement('p');
             timestamp.className = 'card-text';
-            timestamp.innerHTML = `<small class="text-muted">${posts[i].timestamp}<small>`;
+            timestamp.innerHTML = `<small class="text-muted">${posts[i].timestamp}</small>`;
 
-            // card_body.append(poster);
-            // card_body.append(body);
-            card_body.innerHTML = timestamp;
+            card_body.append(poster);
+            card_body.append(body);
+            card_body.append(timestamp);
 
-            card.innerHTML = card_body;
+            card.append(card_body);
             posts_div.append(card);
-            
+
         };
 
         // Run pagination function
