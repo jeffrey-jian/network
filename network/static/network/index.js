@@ -70,7 +70,7 @@ function load_posts(type, page) {
             console.log(posts[i].poster);
             
             const card = document.createElement('div');
-            card.className = 'card w-75';
+            card.className = 'card w-75 mx-auto';
             card.innerHTML = '';
             
             const card_body = document.createElement('div');
@@ -90,9 +90,34 @@ function load_posts(type, page) {
             timestamp.className = 'card-text';
             timestamp.innerHTML = `<small class="text-muted">${posts[i].timestamp}</small>`;
 
+            const likes_div = document.createElement('div');
+            likes_div.className = 'likes_div';
+
+            const like_counter = document.createElement('span');
+            like_counter.className = 'like_counter align-top'
+            like_counter.style = 'color: gray';
+            like_counter.innerHTML = ` ${posts[i].likes}`;
+
+            const like_icon = document.createElement('span');
+            like_icon.className = 'material-icons-outlined';
+            like_icon.style = 'color: lightgray';
+            like_icon.innerHTML = 'favorite';
+
+            like_icon.addEventListener('mouseover', () => {
+                like_icon.style = 'cursor: pointer; color: darkgray;';
+            });
+
+            like_icon.addEventListener('mouseout', () =>{
+                like_icon.style = 'cursor: default; color: lightgray;';
+            });
+
+            likes_div.append(like_icon);
+            likes_div.append(like_counter);
+
             card_body.append(poster);
             card_body.append(body);
             card_body.append(timestamp);
+            card_body.append(likes_div);
 
             card.append(card_body);
             posts_div.append(card);

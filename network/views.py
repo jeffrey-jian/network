@@ -37,6 +37,11 @@ def get_posts(request, type):
     posts = posts.order_by("-timestamp").all()
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
+def like_post(request, post_id):
+
+    post = Post.objects.get(pk=post_id)
+    
+
 
 
 def login_view(request):
