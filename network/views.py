@@ -23,13 +23,15 @@ def get_userinfo(request):
 def get_posts(request, type):
 
     print(type)
+    user = User.objects.get(username=request.user)
 
     if type == "all":
         posts = Post.objects.all()
     elif type == "following":
-        user = User.objects.get(username=request.user)
         followings = user.following.all()
         posts = Post.objects.filter(poster__in=followings)
+    elif type == "liked":
+        posts = user.my_likes.all()
     else:
         return JsonResponse({"error": "Invalid type."}, status=400)
 
@@ -37,10 +39,50 @@ def get_posts(request, type):
     posts = posts.order_by("-timestamp").all()
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
-def like_post(request, post_id):
+def new_post(request):
 
-    post = Post.objects.get(pk=post_id)
+    # New post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Check if new post is empty
+    data = json.loads(request.body)
+    new_body = data.get("new_body")
+    if new_body == "":
+        return JsonResponse({"error": "Empty Body."}, status=400)
     
+    # Create new post
+    user = request.user
+    post = Post(
+        poster=user,
+        body=new_body
+    )
+    post.save()
+
+    return JsonResponse({"message": "Posted successfully."}, status=201)
+
+
+
+
+def like_post(request, post_id):
+    
+    # Query for requested post
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+    
+    user = request.user
+    if not user in post.likes.all():
+        post.likes.add(user)
+        post.save()
+        print('POST LIKED..........')
+        return JsonResponse({"message": "Post liked."}, status=200)
+    else:
+        post.likes.remove(user)
+        post.save()
+        print('POST UNLIKED..........')
+        return JsonResponse({"message": "Post unliked."}, status=200)
 
 
 

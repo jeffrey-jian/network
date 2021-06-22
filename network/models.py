@@ -20,19 +20,21 @@ class Post(models.Model):
     # main = models.BooleanField(default=True)
     # reply_to =  models.ForeignKey("Post", blank=True, null=True, on_delete=models.CASCADE, related_name="comments")
     
+    id = models.AutoField(primary_key=True)
     poster = models.ForeignKey(User, on_delete=models.CASCADE, related_name="my_posts")
     body = models.TextField()
     timestamp = models.DateTimeField(auto_now=True)
-    likes = models.IntegerField(blank=True, default=0)
+    likes = models.ManyToManyField(User, blank=True, related_name="my_likes")
 
     def serialize(self):
         return {
+            "id": self.id,
             "poster": self.poster.username,
             "body": self.body,
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
-            "likes": self.likes,
+            "likes": [user.username for user in self.likes.all()]
         }
 
     def __str__(self):
-         return f"{self.poster} posted '{self.body}' on {self.timestamp}"
+         return f"POST{self.id}: {self.poster} posted '{self.body}' on {self.timestamp}"
 
