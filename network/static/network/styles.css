@@ -1,0 +1,15 @@
+@keyframes appear {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.new_post {
+    animation-name: appear;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+}

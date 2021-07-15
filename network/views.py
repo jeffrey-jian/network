@@ -33,6 +33,8 @@ def get_posts(request, type):
         posts = Post.objects.filter(poster__in=followings)
     elif type == "liked":
         posts = user.my_likes.all()
+    elif type == "self":
+        posts = Post.objects.filter(poster=user)
     else:
         return JsonResponse({"error": "Invalid type."}, status=400)
 
