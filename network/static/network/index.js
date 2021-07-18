@@ -8,8 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Message
     const message = document.querySelector('#message');
 
-    // Load all posts by default
-    load_posts('all', 1);
+    var pathname = window.location.pathname.split('/')[1];
+    console.log(`pathname: ${pathname}`);
+    if (pathname == 'user') {
+        // Load user profile page
+        var profile = window.location.pathname.split('/')[2];
+        load_posts(profile, 1);
+    } else {
+        // Load all posts by default
+        load_posts('all', 1);
+    };
+
+    
 
 });
 
@@ -51,7 +61,7 @@ function paginate(type, array) {
     };
 };
 
-function new_post(userinfo) {
+function new_post() {
 
     // Obtain post body from input field
     const new_body = document.querySelector('#new_post_body').value;
@@ -70,72 +80,72 @@ function new_post(userinfo) {
     .then(result => {
         // Print result
         console.log(result);
-    });
 
-
-    fetch('/get_posts/self')
-    .then(response => response.json())
-    .then(posts => {
-
-        const post = posts[0];
-        console.log(post);
-
-        const card = document.createElement('div');
-        card.className = 'card w-75 mx-auto new_post hello';
-        card.id = `post${post.id}`;
-        card.innerHTML = '';
-        
-        const card_body = document.createElement('div');
-        card_body.className = 'card-body';
-        card_body.innerHTML = '';
-        
-
-        const poster = document.createElement('h5');
-        poster.className = 'card-title';
-        poster.innerHTML = post.poster;
-
-        const body = document.createElement('p');
-        body.className = 'card-text';
-        body.innerHTML = post.body;
-
-        const timestamp = document.createElement('p');
-        timestamp.className = 'card-text';
-        timestamp.innerHTML = `<small class="text-muted">Just now</small>`;
-
-        const likes_div = document.createElement('div');
-        likes_div.className = 'likes_div';
-
-        const like_counter = document.createElement('span');
-        like_counter.className = 'like_counter align-top'
-        like_counter.innerHTML = ` ${(post.likes).length}`;
-
-        const like_icon = document.createElement('span');
-        like_icon.className = 'material-icons-outlined';
-        like_icon.innerHTML = 'favorite';
-
-        like_counter.style = 'color: gray';
-        like_icon.style = 'color: lightgray';
-
-        like_icon.addEventListener('click', () => {
+        fetch('/get_posts/self')
+        .then(response => response.json())
+        .then(posts => {
+    
+            const post = posts[0];
+            console.log(post);
+    
+            const card = document.createElement('div');
+            card.className = 'card w-75 mx-auto new_post hello';
+            card.id = `post${post.id}`;
+            card.innerHTML = '';
             
-            console.log(`clicked like on ${post.id}`)
+            const card_body = document.createElement('div');
+            card_body.className = 'card-body';
+            card_body.innerHTML = '';
             
-            // Run like post function
-            like_post(post.id, like_icon, like_counter)
-            
+    
+            const poster = document.createElement('h5');
+            poster.className = 'card-title';
+            poster.innerHTML = post.poster;
+    
+            const body = document.createElement('p');
+            body.className = 'card-text';
+            body.innerHTML = post.body;
+    
+            const timestamp = document.createElement('p');
+            timestamp.className = 'card-text';
+            timestamp.innerHTML = `<small class="text-muted">Just now</small>`;
+    
+            const likes_div = document.createElement('div');
+            likes_div.className = 'likes_div';
+    
+            const like_counter = document.createElement('span');
+            like_counter.className = 'like_counter align-top'
+            like_counter.innerHTML = ` ${(post.likes).length}`;
+    
+            const like_icon = document.createElement('span');
+            like_icon.className = 'material-icons-outlined';
+            like_icon.innerHTML = 'favorite';
+    
+            like_counter.style = 'color: gray';
+            like_icon.style = 'color: lightgray';
+    
+            like_icon.addEventListener('click', () => {
+                
+                console.log(`clicked like on ${post.id}`)
+                
+                // Run like post function
+                like_post(post.id, like_icon, like_counter)
+                
+            });
+    
+            likes_div.append(like_icon);
+            likes_div.append(like_counter);
+    
+            card_body.append(poster);
+            card_body.append(body);
+            card_body.append(timestamp);
+            card_body.append(likes_div);
+    
+            card.append(card_body);
+            posts_div.prepend(card);
+    
+    
         });
-
-        likes_div.append(like_icon);
-        likes_div.append(like_counter);
-
-        card_body.append(poster);
-        card_body.append(body);
-        card_body.append(timestamp);
-        card_body.append(likes_div);
-
-        card.append(card_body);
-        posts_div.prepend(card);
-
 
     });
     
@@ -152,10 +162,14 @@ async function load_posts(type, page) {
     console.log(`user:${userinfo.username}`);
 
     // New Post
-    // Listen for submission of new post form
-    document.querySelector('#submit_new_post').onclick = () => {
-        new_post(userinfo);
+    if (document.getElementById('new_post')) {
+        // Listen for submission of new post form
+        document.querySelector('#submit_new_post').onclick = () => {
+            new_post(userinfo);
+            document.querySelector('#new_post_body').value = '';
+        };
     };
+
     
 
 
@@ -175,7 +189,7 @@ async function load_posts(type, page) {
         };
 
         let x = page * 10;
-        var i = (page * 10) - 9;
+        let i = (page * 10) - 10;
         if (page * 10 > posts.length) {
             x = posts.length;
         };
@@ -186,7 +200,7 @@ async function load_posts(type, page) {
 
         for (i; i < x; i++) {
 
-            post_id = posts[i].id;
+            let post_id = posts[i].id;
 
             const card = document.createElement('div');
             card.className = 'card w-75 mx-auto';
@@ -200,7 +214,11 @@ async function load_posts(type, page) {
 
             const poster = document.createElement('h5');
             poster.className = 'card-title';
-            poster.innerHTML = posts[i].poster;
+            poster.innerHTML = `<a href="/user/${posts[i].poster}">${posts[i].poster}</a>`;
+
+            poster.addEventListener('click', () => {
+                
+            });
 
             const body = document.createElement('p');
             body.className = 'card-text';
@@ -223,13 +241,13 @@ async function load_posts(type, page) {
 
             if (posts[i].likes.includes(userinfo.username)) {
                 
-                console.log(`POST${i} already LIKED.`)
+                console.log(`POST${i} ID:${posts[i].id} already LIKED.`)
                 like_counter.style = 'color: red';
                 like_icon.style = 'color: red';
 
             } else {
 
-                console.log(`POST${i} NOT LIKED.`)
+                console.log(`POST${i} ID:${posts[i].id} NOT LIKED.`)
                 like_counter.style = 'color: gray';
                 like_icon.style = 'color: lightgray';
             }
@@ -253,6 +271,10 @@ async function load_posts(type, page) {
 
             card.append(card_body);
             posts_div.append(card);
+
+            for (let j = 0; j < x; j++) {
+                
+            }
 
         };
 

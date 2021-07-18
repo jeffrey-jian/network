@@ -13,3 +13,12 @@
     animation-fill-mode: forwards;
     animation-play-state: running;
 }
+
+a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+#heading {
+    padding: 10px;
+}

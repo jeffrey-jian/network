@@ -14,6 +14,11 @@ from .models import User, Post
 def index(request):
     return render(request, "network/index.html")
 
+def user(request, username):
+    return render(request, "network/user.html", {
+        "profilename": username
+    })
+
 def get_userinfo(request):
 
     user = User.objects.get(username=request.user)
@@ -35,6 +40,9 @@ def get_posts(request, type):
         posts = user.my_likes.all()
     elif type == "self":
         posts = Post.objects.filter(poster=user)
+    elif User.objects.filter(username=type).exists():
+        profile = User.objects.get(username=type)
+        posts = Post.objects.filter(poster=profile)
     else:
         return JsonResponse({"error": "Invalid type."}, status=400)
 
