@@ -87,6 +87,8 @@ function new_post() {
     
             const post = posts[0];
             console.log(post);
+            const post_id = post.id;
+            const post_body = post.body;
     
             const card = document.createElement('div');
             card.className = 'card w-75 mx-auto new_post hello';
@@ -109,6 +111,32 @@ function new_post() {
             const timestamp = document.createElement('p');
             timestamp.className = 'card-text';
             timestamp.innerHTML = `<small class="text-muted">Just now</small>`;
+
+            const edit_break = document.createElement('small');
+            edit_break.className = 'text-muted';
+            edit_break.innerHTML = " | ";
+            
+            const edit_link = document.createElement('a');
+            edit_link.href = "#";
+
+            const edit_button = document.createElement('small');
+            edit_button.className = `text-muted edit_button_${post_id}`;
+            edit_button.href = '#';
+            edit_button.innerHTML = 'Edit';
+
+            edit_button.addEventListener('click', () => {
+
+                console.log(`clicked edit on ${post_id} with body: ${post_body}`);
+
+                // Run edit post function
+                edit_post(body, post_id, post_body);
+                
+            });
+
+            edit_link.append(edit_button);
+
+            timestamp.append(edit_break);
+            timestamp.append(edit_link);
     
             const likes_div = document.createElement('div');
             likes_div.className = 'likes_div';
@@ -158,8 +186,13 @@ async function load_posts(type, page) {
     posts_div = document.querySelector('#posts');
     posts_div.innerHTML = '';
 
-    const userinfo = await get_userinfo();
-    console.log(`user:${userinfo.username}`);
+    let userinfo = await get_userinfo();
+    console.log(userinfo);
+    if (userinfo.message == "User not logged in.") {
+        userinfo = undefined;
+        console.log(`userinfo is now: ${userinfo}`);
+    }
+
 
     // New Post
     if (document.getElementById('new_post')) {
@@ -169,8 +202,66 @@ async function load_posts(type, page) {
             document.querySelector('#new_post_body').value = '';
         };
     };
-
     
+    // Follower count
+    if (document.getElementById('follower_count')) {
+        
+        const follower_count = document.getElementById('follower_count');
+        fetch(`/followers/${type}`)
+        .then(response => response.json())
+        .then(result => {
+            
+            console.log(result.count);
+
+            follower_count.innerHTML = result.count;
+
+        });
+
+    };
+
+    // Follow button
+    if (document.getElementById('follow_button')) {
+        
+        const follow_button = document.getElementById('follow_button'); 
+        console.log(`following: ${userinfo.following}`);
+        if (userinfo.following.includes(type)) {
+
+            follow_button.className = 'btn btn-danger align-top';
+            follow_button.innerHTML = '<span class="material-icons align-middle" style="font-size: 19px;">how_to_reg</span><a>Following</a>';
+
+        } else {
+
+            follow_button.className = 'btn btn-outline-danger align-top';
+            follow_button.innerHTML = 'Follow';
+
+        };
+
+        follow_button.addEventListener('click', () => {
+            fetch(`/follow/${type}`)
+            .then(response => response.json())
+            .then(result => {
+
+                console.log(result.message);
+
+                let current_count = parseInt(document.getElementById('follower_count').innerHTML);
+               
+                if (result.message == "User followed.") {
+                    follow_button.className = 'btn btn-danger align-top';
+                    follow_button.innerHTML = '<span class="material-icons align-middle" style="font-size: 19px;">how_to_reg</span><a>Following</a>';
+                    current_count++;
+                    follower_count.innerHTML = current_count;
+                    
+                } else if (result.message == "User unfollowed.") {
+                    follow_button.className = 'btn btn-outline-danger align-top';
+                    follow_button.innerHTML = 'Follow';
+                    current_count--;
+                    follower_count.innerHTML = current_count;
+                };
+            });
+            return false;
+        });
+    
+    };
 
 
     // Load Posts
@@ -201,6 +292,7 @@ async function load_posts(type, page) {
         for (i; i < x; i++) {
 
             let post_id = posts[i].id;
+            let post_body = posts[i].body;
 
             const card = document.createElement('div');
             card.className = 'card w-75 mx-auto';
@@ -222,7 +314,7 @@ async function load_posts(type, page) {
 
             const body = document.createElement('p');
             body.className = 'card-text';
-            body.innerHTML = posts[i].body;
+            body.innerHTML = post_body;
 
             const timestamp = document.createElement('p');
             timestamp.className = 'card-text';
@@ -239,27 +331,63 @@ async function load_posts(type, page) {
             like_icon.className = 'material-icons-outlined';
             like_icon.innerHTML = 'favorite';
 
-            if (posts[i].likes.includes(userinfo.username)) {
-                
-                console.log(`POST${i} ID:${posts[i].id} already LIKED.`)
-                like_counter.style = 'color: red';
-                like_icon.style = 'color: red';
+            // If user is logged in
+            if (userinfo !== undefined) {
 
-            } else {
+                // Edit if user is poster
+                if (userinfo.username == posts[i].poster) {
 
-                console.log(`POST${i} ID:${posts[i].id} NOT LIKED.`)
-                like_counter.style = 'color: gray';
-                like_icon.style = 'color: lightgray';
-            }
+                    const edit_break = document.createElement('small');
+                    edit_break.className = 'text-muted';
+                    edit_break.innerHTML = " | ";
+                    
+                    const edit_link = document.createElement('a');
+                    edit_link.href = "#";
 
-            like_icon.addEventListener('click', () => {
-                
-                console.log(`clicked like on ${post_id}`)
-                
-                // Run like post function
-                like_post(post_id, like_icon, like_counter)
-                
-            });
+                    const edit_button = document.createElement('small');
+                    edit_button.className = `text-muted edit_button_${post_id}`;
+                    edit_button.href = '#';
+                    edit_button.innerHTML = 'Edit';
+
+                    edit_button.addEventListener('click', () => {
+
+                        console.log(`clicked edit on ${post_id} with body: ${post_body}`);
+
+                        // Run edit post function
+                        edit_post(body, post_id, post_body);
+                        
+                    });
+
+                    edit_link.append(edit_button);
+
+                    timestamp.append(edit_break);
+                    timestamp.append(edit_link);
+                };           
+
+                if (posts[i].likes.includes(userinfo.username)) {
+                    
+                    console.log(`POST${i} ID:${posts[i].id} already LIKED.`)
+                    like_counter.style = 'color: red';
+                    like_icon.style = 'color: red';
+
+                } else {
+
+                    console.log(`POST${i} ID:${posts[i].id} NOT LIKED.`)
+                    like_counter.style = 'color: gray';
+                    like_icon.style = 'color: lightgray';
+                }
+
+                like_icon.addEventListener('click', () => {
+                    
+                    console.log(`clicked like on ${post_id}`)
+                    
+                    // Run like post function
+                    like_post(post_id, like_icon, like_counter)
+                    
+                });
+
+            };
+            
 
             likes_div.append(like_icon);
             likes_div.append(like_counter);
@@ -271,10 +399,6 @@ async function load_posts(type, page) {
 
             card.append(card_body);
             posts_div.append(card);
-
-            for (let j = 0; j < x; j++) {
-                
-            }
 
         };
 
@@ -315,3 +439,50 @@ function like_post(post_id, like_icon, like_counter) {
     });
     return false;
 };
+
+function edit_post(body, post_id, post_body) {
+
+    const edit_form = document.createElement('form');
+                    
+    const edit_form_group = document.createElement('div');
+    edit_form_group.className = 'form-group';
+
+    const edit_form_textarea = document.createElement('textarea');
+    edit_form_textarea.className = "form-control";
+    edit_form_textarea.rows = "2";
+    edit_form_textarea.value = post_body;
+
+    const save_edit = document.createElement('button');
+    save_edit.type = "submit";
+    save_edit.className = "btn btn-primary";
+    save_edit.innerHTML = 'Save'
+    
+
+    edit_form_group.append(edit_form_textarea);
+    edit_form.append(edit_form_group);
+    edit_form.append(save_edit);
+    body.innerHTML = '';
+    body.append(edit_form);
+
+
+    edit_form.addEventListener('submit', () => {
+        
+        const edit_body = edit_form_textarea.value;
+
+        fetch(`/edit_post/${post_id}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                edit_body: edit_body
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+
+            console.log(result);
+            body.innerHTML = edit_body;
+
+        });
+        
+        return false;
+    });
+}

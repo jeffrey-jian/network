@@ -3,12 +3,13 @@ from django.db import models
 
 
 class User(AbstractUser):
-    following = models.ManyToManyField("self", blank=True, related_name="followers")
+    following = models.ManyToManyField("self", blank=True, related_name="followers", symmetrical=False)
 
     def serialize(self):
         return {
             "username": self.username,
-            "email": self.email
+            "email": self.email,
+            "following": [user.username for user in self.following.all()]
         }
 
     def __str__(self):

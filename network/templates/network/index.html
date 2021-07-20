@@ -7,17 +7,19 @@
         </div>
     </div>
 
-    <div class="card w-75 mx-auto">
-        <div class="card-body">
-            <form id="new_post">
-                <div class="form-group">
-                    <h3>New Post</h3>
-                    <textarea class="form-control" id="new_post_body" rows="2"></textarea>
-                </div>
-                <button id="submit_new_post" type="button" class="btn btn-primary">Post</button>
-            </form>
+    {% if user.is_authenticated %}
+        <div class="card w-75 mx-auto">
+            <div class="card-body">
+                <form id="new_post">
+                    <div class="form-group">
+                        <h3>New Post</h3>
+                        <textarea class="form-control" id="new_post_body" rows="2"></textarea>
+                    </div>
+                    <button id="submit_new_post" type="button" class="btn btn-primary">Post</button>
+                </form>
+            </div>
         </div>
-    </div>
+    {% endif %}
 
     
 

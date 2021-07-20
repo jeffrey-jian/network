@@ -21,4 +21,11 @@ a {
 
 #heading {
     padding: 10px;
+    display: inline;
 }
+
+#follow_button {
+    margin: 9px;
+    display: inline-block;
+}
+

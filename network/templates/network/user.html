@@ -5,6 +5,10 @@
     <div class="card w-75 mx-auto border-0">
         <div class="card-body p-0">
             <h1 id="heading">{{ profilename }}</h1>
+            {% if user.is_authenticated %}
+                <button id="follow_button" class="btn btn-outline-warning">Follow</button>
+            {% endif %}
+            <p style="padding-left: 10px" class="text-muted">Followers: <a id="follower_count" class="text-muted"></a></p>
         </div>
     </div>
 

@@ -12,24 +12,31 @@ from .models import User, Post
 
 
 def index(request):
-    return render(request, "network/index.html")
+    return render(request, "network/index.html", {
+        "user": request.user
+    })
 
 def user(request, username):
     return render(request, "network/user.html", {
-        "profilename": username
+        "profilename": username,
+        "user": request.user
     })
 
 def get_userinfo(request):
 
-    user = User.objects.get(username=request.user)
-    return JsonResponse(user.serialize(), safe=False)
+    if request.user.is_authenticated:
+        user = User.objects.get(username=request.user)
+        return JsonResponse(user.serialize(), safe=False)
+    else:
+        return JsonResponse({"message": "User not logged in."})
 
 
 
 def get_posts(request, type):
 
     print(type)
-    user = User.objects.get(username=request.user)
+    if request.user.is_authenticated:
+        user = User.objects.get(username=request.user)
 
     if type == "all":
         posts = Post.objects.all()
@@ -73,7 +80,64 @@ def new_post(request):
 
     return JsonResponse({"message": "Posted successfully."}, status=201)
 
+@csrf_exempt
+def edit_post(request, post_id):
 
+    # Edit post must be via PUT
+    if request.method != "PUT":
+        return JsonResponse({"error": "PUT request required."}, status=400)\
+
+    # User must be original poster
+    # Query for requested post
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post does not exist."}, status=404)
+
+    if request.user != post.poster:
+        return JsonResponse({"error": "You are not authorised to edit this post."}, status=404)
+
+    data = json.loads(request.body)
+    edit_body = data.get("edit_body")
+    
+    if not edit_body == "":
+        post.body = edit_body
+        post.save()
+        return JsonResponse({"message": "Post edited successfully."}, status=201)
+    else:
+         return JsonResponse({"error": "Empy Body."}, status=400)
+
+
+
+
+def follow(request, followname):
+
+    # Query for follow user
+    try:
+        followuser = User.objects.get(username=followname)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User does not exist."}, status=404)
+
+    user = request.user
+    if not followuser in user.following.all():
+        user.following.add(followuser)
+        user.save()
+        return JsonResponse({"message": "User followed."}, status=200)
+    else:
+        user.following.remove(followuser)
+        user.save()
+        return JsonResponse({"message": "User unfollowed."}, status=200)
+        
+def followers(request, user):
+
+    # Query for user
+    try:
+        user = User.objects.get(username=user)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User does not exist."}, status=404)
+    
+    follower_count = user.followers.all().count()
+    return JsonResponse({"count": follower_count}, status=200)
 
 
 def like_post(request, post_id):
@@ -95,8 +159,6 @@ def like_post(request, post_id):
         post.save()
         print('POST UNLIKED..........')
         return JsonResponse({"message": "Post unliked."}, status=200)
-
-
 
 def login_view(request):
     if request.method == "POST":
